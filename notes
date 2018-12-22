@@ -1,0 +1,29 @@
+Objective: C compiler that returns x86 assembly
+
+1. Lexical analysis
+	Going through statements turning each into an array of tokens
+
+2. Parsing
+	Create AST that goes depth first
+	Example:
+if (a < b) {
+    c = 2;
+    return c;
+} else {
+    c = 3;
+}
+
+				If statement
+                |                    |                 |
+	Binary op (less than)	Statement list      Statement list
+      |              |           |        |            |
+   Op 1: a         Op 2 b     var asg	 ret         var asg
+                               |   |      |          |    |
+                               c   2      c          c    3
+
+                                  loop
+                |                    |
+         Conditional             Statement list
+
+
+
