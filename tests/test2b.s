@@ -3,4 +3,4 @@ _main:
     movl	$3, %eax
     neg 	%eax
     not 	%eax
-    ret
+ret
