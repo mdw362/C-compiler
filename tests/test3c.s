@@ -6,6 +6,10 @@ _main:
     pop 	%rcx
     imulq	%rcx, %rax
     push 	%rax
+    movq	$5, %rax
+    pop 	%rcx
+    imulq	%rcx, %rax
+    push 	%rax
     movq	$2, %rax
     pop 	%rcx
     idivq	%rcx, %rax

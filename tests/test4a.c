@@ -3,6 +3,6 @@
 
 int main ()
 {
-	return (5 * 4 * 5) / 2;
 
+  return 4 && 8;
 }

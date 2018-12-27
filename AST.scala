@@ -6,8 +6,7 @@ class AST (var root : ASTNode) {
     printNode(current)
   }  
   def printNode(node : ASTNode){
-  
-    println ("NODE VAL: " + node.getValue + "\t NODE TYPE: " + node.getDtype)
+    println ("NODE VAL: " + node.getValue + "\t NODE TYPE: " + node.getDtype + "\tCHILDREN: " + node.getChildren().length)
     if (node.getChildren().length>0)printNode (node.getChildren()(0))
     if (node.getChildren().length>1)printNode(node.getChildren()(1))
     
