@@ -4,12 +4,14 @@ class AST (var root : ASTNode) {
   def printAST() {
     var current=root
     printNode(current)
-  }  
-  def printNode(node : ASTNode){
-    println ("NODE VAL: " + node.getValue + "\t NODE TYPE: " + node.getDtype + "\tCHILDREN: " + node.getChildren().length)
-    if (node.getChildren().length>0)printNode (node.getChildren()(0))
-    if (node.getChildren().length>1)printNode(node.getChildren()(1))
     
+    def printNode(node : ASTNode){
+      println ("NODE VAL: " + node.getValue + "\t NODE TYPE: " + node.getDtype + "\tCHILDREN: " + node.getChildren().length)
+      for (n <- node.getChildren()){
+        printNode(n)
+      }
+    
+    }
   }
 
 }

@@ -2,13 +2,13 @@ import scala.io.Source
 import java.io._
 import scala.util.matching.Regex
 import Array._
+import scala.collection.mutable.HashMap
 
 object Compiler {
   def main (args: Array[String]){
     var cFile=args(0)
     var tokens: List[Token]=List ()
     var ast : AST = new AST (new ASTNode (null, "PROGRAM") )
-    var envs : Map [String, String] = Map()
     // Iterate through every char in file and construct tokens
     Source.fromFile(cFile).foreach{
       var str=""
@@ -72,7 +72,7 @@ object Compiler {
     // Primary execution
 //    printTokens()
     parseStatement()
-//    ast.printAST()
+    ast.printAST()
 //    System.exit(0)
     generateCode()
 
@@ -121,19 +121,53 @@ object Compiler {
           var funcNode=new ASTNode (tokens(current+1).getValue(), "FUNCTION")
           currentNode.addChild(funcNode)
           currentNode=funcNode
+          current+=2
         }
+        // Parses variable assignments and declarations
         else if (tokens(current).getDtype=="INT" && tokens(current+1).getDtype=="IDENTIFIER"){
           if (tokens(current+2).getDtype=="SEMI_COLON"){
+            val declNode=new ASTNode (tokens(current+1).getValue, "DECLARATION")
+            currentNode.addChild (declNode)
+            current+=2
 
           }
           else if (tokens(current+2).getDtype=="ASSIGNMENT"){
-            if (tokens(current+3).getDtype!="INT_LITERAL"){
-              println("INVALID ASSIGNMENT. NOW EXITTING")
+            val declNode=new ASTNode (tokens(current+1).getValue, "DECLARATION")
+            val asgNode=new ASTNode (tokens(current+1).getValue, "ASSIGNMENT")
+            current+=3
+            val exprNode=parseExpression()
+            if (exprNode==null){
+              println("ERROR: INVALID ASSIGNMENT. NOW EXITTING")
               System.exit(1)
             }
+            asgNode.addChild(exprNode)
+            declNode.addChild(asgNode)
+            currentNode.addChild(declNode)
+          }
+
+          if (tokens(current).getDtype!="SEMI_COLON"){
+            println("ERROR: SEMI COLON MISSING. NOW EXITTING")
+            System.exit(1)
           }
         }
-        if (tokens(current).getDtype=="RETURN" ) {
+        else if (tokens(current).getDtype=="IDENTIFIER" && tokens(current+1).getDtype=="ASSIGNMENT"){
+          val asgNode=new ASTNode (tokens(current).getValue, "ASSIGNMENT")
+          current+=2
+          val exprNode=parseExpression()
+          if (exprNode==null){
+            println("ERROR: INVALID ASSIGNMENT. NOW EXITTING")
+            System.exit(1)
+          }
+          asgNode.addChild(exprNode)
+          currentNode.addChild(asgNode)
+          if (tokens(current).getDtype!="SEMI_COLON"){
+            println("ERROR: SEMI COLON MISSING. NOW EXITTING")
+            System.exit(1)
+          }
+          
+        }
+        // Parses return statements
+        else if (tokens(current).getDtype=="RETURN" ) {
           current+=1
           var retNode=new ASTNode (null,"RETURN")
           // Recursively evaluate expression after return
@@ -146,10 +180,10 @@ object Compiler {
             System.exit(1)
           }
         }
+        // Parses expressions
         else {
-       //   var exprNode=parseExpression()
-          
-       //   if (exprNode!=null) currentNode.addChild(exprNode)
+          val exprNode=parseExpression()
+          if (exprNode!=null) currentNode.addChild(exprNode)
         }
         current+=1
       }
@@ -269,13 +303,12 @@ object Compiler {
           var node=parseExpression ()
           if (!(tokens(current).getDtype=="CLOSE_PAREN")){
             println("ERROR: PARENTHESIS MISSING. NOW EXITING")
-            println("CURRENT: " + tokens(current).getValue + " VAL: " + tokens(current).getDtype)
             System.exit(1)
           }
           current+=1
           node
         }
-        else if (token.getDtype=="INT_LITERAL"){
+        else if (token.getDtype=="INT_LITERAL" || token.getDtype=="IDENTIFIER"){
           var node=new ASTNode (token.getValue, "EXPRESSION")
           current+=1
           node
@@ -288,88 +321,144 @@ object Compiler {
             unaryNode
           }   
         else {
-          println("RETURNING NULL FOR : " + token.getDtype + " WITH VAL: " + token.getValue)
+        //  println("RETURNING NULL FOR : " + token.getDtype + " WITH VAL: " + token.getValue)
           null
         }
       }
     }
     // Iterates through AST and translates the C code into x86 Assembly
     def generateCode(){
-      var fileName=cFile.substring(0, cFile.length()-2)
-      var codeGenerator =new PrintWriter (new File(fileName+".s"))
-      var node : ASTNode = ast.getRoot()
+      val fileName=cFile.substring(0, cFile.length()-2)
+      val codeGenerator =new PrintWriter (new File(fileName+".s"))
+      var n : ASTNode = ast.getRoot
       var lines=""
-      search(node)
+      var env : HashMap [String, Int]=null
+      var stackIndex=0
+      search(n)
       // Performs DFS through AST and generates assembly for each respective node
-      def search (n : ASTNode){
-        var node=n
+      def search (node : ASTNode){
+        // rsp is top of frame, rbp is bottom of frame; rbp tells 
+        // where stack ends
         if (node.getDtype=="FUNCTION"){
           lines=".globl _"+node.getValue+"\n_"+node.getValue+":\n"
+          lines=lines+"    pushq       %rbp\n"
+          lines=lines+"    movq        %rsp, %rbp\n"
           codeGenerator.write(lines)
+          env=HashMap()
           lines=""
-          search(node.getChildren()(0))
+          stackIndex=0
+          var doesRet=false
+
+          for (c <- node.getChildren()){
+            search(c)
+            if (c.getDtype=="RETURN") doesRet=true
+          }
+          if (!doesRet) codeGenerator.write("    movq        $0, %rax\n")
+          lines=lines+"    movq        %rbp, %rsp\n"
+          lines=lines+"    popq        %rbp\n"
+          lines=lines+"    ret\n"
+          codeGenerator.write(lines)
+          lines=""        
         }
+        // If there is no return statement, return 0
         if (node.getDtype=="RETURN"){
-          lines=evalExpression(node.getChildren()(0))
+          lines=evalExpression(node.getChildren()(0), env)
           codeGenerator.write(lines)
           lines=""
         }
         if (node.getDtype=="PROGRAM"){
-          for (c <- node.getChildren()){
-            search(c)
+          for (c <- node.getChildren() ){
+            search (c)
           }
         }
-        if (node.getDtype=="FUNCTION"){
-          lines="ret\n"
+        // For declarations, populates env and sets stack offset appropriately
+        if (node.getDtype=="DECLARATION"){
+          if ((env.contains(node.getValue))){
+            println("ERROR: VARIABLE " + node.getValue + " DECLARED MORE THAN ONCE. NOW EXITTING.")
+            System.exit(1)
+          }
+          env+= (node.getValue -> stackIndex)
+          stackIndex-=4
+          // If value is declared and not initialized, initialize it to 0
+          if (node.getChildren.length==0){
+            lines=lines+"    movq        $0, %rax\n"
+            lines=lines+"    pushq       %rax\n"
+            codeGenerator.write(lines)
+            lines=""
+          }
+          else{
+            lines=evalExpression (node.getChildren()(0).getChildren()(0), env)
+            lines=lines+"    pushq        %rax\n"
+            codeGenerator.write(lines)
+          }
+        }
+        // Evaluates expression, puts it in %rax, then moves that value to the
+        // correct place in memory
+        if (node.getDtype=="ASSIGNMENT"){
+          if (!(env.contains(node.getValue))){
+            println("ERROR: VARIABLE " + node.getValue + " NOT DEFINED. NOW EXITTING.")
+            System.exit(1)
+          }
+          lines=evalExpression (node.getChildren()(0), env)
+          if (env.get(node.getValue).get!=0) lines=lines+"    movq        %rax, "+env.get(node.getValue).get+"(%rbp)\n"
+          else lines=lines+"    movq       %rax, (%rbp)\n"
+          codeGenerator.write (lines)
+        }
+        if (node.getDtype=="EXPRESSION"){
+          lines=evalExpression (node, env)
           codeGenerator.write(lines)
-          lines=""
         }
       }
       codeGenerator.close()
     }
-    def evalExpression (n : ASTNode) : String ={
+    def evalExpression (n : ASTNode,  env : HashMap [String, Int]) : String ={
       var node=n
-      var spc="      "
+      val spc="      "
       var asm=""
-      if (node.isLeaf()){
-        if (!(node.getValue.matches("[0-9]+"))){
+      if (node.isLeaf){
+        if (!(node.getValue.matches("[0-9]+")) && !(node.getValue.matches("[a-zA-Z]+"))){
           println("ERROR. NON-NUMBER FOUND IN LEAF")
           System.exit(1)
         }
-        asm="    movq\t$"+node.getValue()+", %rax\n"
+        if (node.getValue.matches("[0-9]+"))asm="    movq\t$"+node.getValue+", %rax\n"
+        else {
+          if (env.get(node.getValue).get==0) asm="    movq\t(%rbp), %rax\n"
+            else asm="    movq\t"+env.get(node.getValue).get+"(%rbp), %rax\n"
+
+        } 
       }
       else{
-        if (node.getValue()=="+") asm=evalOperation(node, "+")
+        if (node.getValue()=="+") asm=evalOperation(node, "+", env)
         else if (node.getValue()=="-"){
           if (node.getChildren().length==1) 
-            asm=evalExpression(node.getChildren()(0))+"    neg "+spc+"%rax\n"
-          else if (node.getChildren().length==2) asm=evalOperation(node,"-")
+            asm=evalExpression(node.getChildren()(0), env)+"    neg "+spc+"%rax\n"
+          else if (node.getChildren().length==2) asm=evalOperation(node,"-", env)
         }
-        else if (node.getValue=="*") asm=evalOperation(node, "*")
-        else if (node.getValue=="/") asm=evalOperation(node, "/")
-        else if (node.getValue=="==") asm=evalOperation(node, "==")
-        else if (node.getValue=="!=")asm=evalOperation(node, "!=")
-        else if (node.getValue==">=") asm=evalOperation(node,">=")
-        else if (node.getValue=="<=") asm=evalOperation(node, "<=")
-        else if (node.getValue=="<") asm=evalOperation(node, "<")
-        else if (node.getValue==">") asm=evalOperation(node, ">")
-        else if (node.getValue=="||") asm=evalOperation(node, "||")
-        else if (node.getValue=="&&") asm=evalOperation(node, "&&")
+        else if (node.getValue=="*") asm=evalOperation(node, "*",env)
+        else if (node.getValue=="/") asm=evalOperation(node, "/",env)
+        else if (node.getValue=="==") asm=evalOperation(node, "==", env)
+        else if (node.getValue=="!=")asm=evalOperation(node, "!=",env)
+        else if (node.getValue==">=") asm=evalOperation(node,">=",env)
+        else if (node.getValue=="<=") asm=evalOperation(node, "<=",env)
+        else if (node.getValue=="<") asm=evalOperation(node, "<",env)
+        else if (node.getValue==">") asm=evalOperation(node, ">",env)
+        else if (node.getValue=="||") asm=evalOperation(node, "||",env)
+        else if (node.getValue=="&&") asm=evalOperation(node, "&&",env)
         else if (node.getValue=="~")
-          asm=evalExpression(node.getChildren()(0))+"    not   "+spc+"%rax\n"
+          asm=evalExpression(node.getChildren()(0), env)+"    not   "+spc+"%rax\n"
         else if (node.getValue=="!")
-          asm=evalExpression(node.getChildren()(0))+"    cmpq  "+spc+"$0, %rax\n    movq  "+spc+"$0, %rax\n    sete  "+spc+"%al\n"
+          asm=evalExpression(node.getChildren()(0), env)+"    cmpq  "+spc+"$0, %rax\n    movq  "+spc+"$0, %rax\n    sete  "+spc+"%al\n"
       }
       asm
     }
     // Generate assembly for the  major operations
-    def evalOperation (node : ASTNode, op : String) : String ={
+    def evalOperation (node : ASTNode, op : String, env : HashMap[String, Int]) : String ={
       var asm=""
       var spc="      "
-      var t1=evalExpression (node.getChildren()(0))
-      asm=t1+"    push  "+spc+"%rax\n"
-      var t2=evalExpression(node.getChildren()(1))
-      asm=asm+t2+"    pop   " + spc+ "%rcx\n"
+      var t1=evalExpression (node.getChildren()(0), env)
+      asm=t1+"    pushq "+spc+"%rax\n"
+      var t2=evalExpression(node.getChildren()(1), env)
+      asm=asm+t2+"    popq  " + spc+ "%rcx\n"
       if (op=="+") asm=asm +"    addq  "+spc+"%rcx, %rax\n"
       else if (op=="-") asm=asm+"    subq  "+spc+"%rcx, %rax\n"
       else if (op=="*") asm=asm+"    imulq  "+spc+"%rcx, %rax\n"
