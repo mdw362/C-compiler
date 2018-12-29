@@ -12,4 +12,7 @@ class ASTNode (var value : String, var dtype : String){
     children = concat (children, temp)
   }
   def isLeaf () : Boolean=children.length==0
+  def printNode (){
+    println("NODE VAL: " + value + "\tTYPE: " + dtype + "\tCHILDREN: " + children.length)
+  }
 }

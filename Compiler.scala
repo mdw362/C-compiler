@@ -11,71 +11,84 @@ object Compiler {
     var ast : AST = new AST (new ASTNode (null, "PROGRAM") )
     // Iterate through every char in file and construct tokens
     Source.fromFile(cFile).foreach{
-      var str=""
-      var s2='\u0000'
-      (s)=>{
-        if (s2!='\u0000'){
-          if (s=='=' ||
-             (s2=='&' && s=='&') ||
-             (s2=='|' && s=='|')) {
-            tokenizer( (s2+"")+(s+""))
-            str=""
-            s2='\u0000'
-          }
-          else if (s2=='='){
-            tokenizer(s2+"")
-            s2='\u0000'
-            if (s!=' ') str=s+""
-          }
-          else{
-            if ((!(s+"").matches("[a-zA-Z]") ) && s!='\n')tokenizer(s2+"")
-            s2='\u0000'
-            str=""
-          }
-        }
-        else if (s=='>' ||
-                 s=='<' ||
-                 s=='!' ||
-                 s=='=' ||
-                 s=='&' ||
-                 s=='|'){
-          if ( !(str.contains(" ")) || str.matches("[0-9]+")) tokenizer(str)
-          s2=s
-        }
-        else if (s=='(' || 
-            s==')' || 
-            s=='{' || 
-            s=='}' || 
-            s=='-' || 
-            s=='~' || 
-            s=='+' ||
-            s=='/' ||
-            s=='*' ||
-            s=='!') {
-              if (!(str.contains(" ")) || (str.matches("[0-9]+"))) tokenizer(str)
-              tokenizer(s+"")
-              str=""
-            }
-
-        else if (s==';'){
-          if (!(str.contains(" ")) || str.matches("[0-9]+"))tokenizer(str)
-          tokenizer(";")
-          str=""
-        }
-        else if (s==' ' || s=='\n' || s=='\t'){
-          if (!(str.contains(" ")))tokenizer(str)
-          str=""
-        }
-        else str=str+s
-      }
+      analyzeChar()
     }
     // Primary execution
-//    printTokens()
+    //printTokens()
     parseStatement()
-    ast.printAST()
+   // ast.printAST()
+    
 //    System.exit(0)
     generateCode()
 
+    def analyzeChar () = {
+      var str=""
+      var s2='\u0000'
+      var ignore=false
+      (s : Char) => {
+        if (s=='\n') ignore=false
+        else if (s=='#') ignore=true;
+        // Checks for comparison operators
+        if (!ignore){
+          if (s2!='\u0000'){
+            if (s=='=' ||
+               (s2=='&' && s=='&') ||
+               (s2=='|' && s=='|')) {
+              tokenizer( (s2+"")+(s+""))
+              str=""
+              s2='\u0000'
+            }
+            else if (s2=='='){
+              tokenizer(s2+"")
+              s2='\u0000'
+              if (s!=' ') str=s+""
+            }
+            else{
+              tokenizer(s2+"")         
+              s2='\u0000'
+              str=s+""
+            }
+          }
+          else if (s=='>' ||
+                   s=='<' ||
+                   s=='!' ||
+                   s=='=' ||
+                   s=='&' ||
+                   s=='|'){
+            if ( !(str.contains(" ")) ) tokenizer(str)
+            s2=s
+          }
+          // Checks for additional special characters
+          else if (s=='(' || 
+              s==')' || 
+              s=='{' || 
+              s=='}' || 
+              s=='-' || 
+              s=='~' || 
+              s=='+' ||
+              s=='/' ||
+              s=='*' ||
+              s==':' ||
+              s=='?' || 
+              s=='!') {
+                if (!(str.contains(" ")) || (str.matches("[0-9]+"))) tokenizer(str)
+                tokenizer(s+"")
+                str=""
+              }
+
+          else if (s==';'){
+            if (!(str.contains(" ")) || str.matches("[0-9]+"))tokenizer(str)
+            tokenizer(";")
+            str=""
+          }
+          else if (s==' ' || s=='\n' || s=='\t'){
+            if (!(str.contains(" ")))tokenizer(str)
+            str=""
+          }
+          else str=str+s
+        }
+      }
+    }
     // Receives string input and converts it to a token
     def tokenizer (word : String){
       if (word=="") return
@@ -92,6 +105,8 @@ object Compiler {
       else if (word=="*")                    dtype="MULTIPLY"
       else if (word=="/")                    dtype="DIVIDE"
       else if (word=="=")                    dtype="ASSIGNMENT"
+      else if (word=="?")                    dtype="QUESTION"
+      else if (word==":")                    dtype="COLON"
       else if (word=="int")                  dtype="INT"
       else if (word=="&&")                   dtype="AND"
       else if (word=="||")                   dtype="OR"
@@ -101,6 +116,8 @@ object Compiler {
       else if (word==">")                    dtype="GREATER_THAN"
       else if (word=="<=")                   dtype="LESS_EQUAL_THAN"
       else if (word==">=")                   dtype="GREATER_EQUAL_THAN"
+      else if (word=="if")                   dtype="IF"
+      else if (word=="else")                 dtype="ELSE"
       else if (word=="return")               dtype="RETURN"
       else if (word.matches("[0-9]+"))       dtype="INT_LITERAL"
       else if (word.matches("[a-zA-Z]*"))    dtype="IDENTIFIER"
@@ -115,8 +132,12 @@ object Compiler {
       var current=0
       while (current < tokens.length){
         if (tokens(current).getDtype==null) current+=1
-        // check if stack is empty
-        // Adds function to AST
+        handleStatement
+        current+=1
+      }
+      // Converts individual statements into nodes
+      def handleStatement (){ 
+        // Parses function
         if (tokens(current).getDtype=="INT" && tokens(current+1).getDtype=="IDENTIFIER" && tokens(current+2).getDtype=="OPEN_PAREN"){
           var funcNode=new ASTNode (tokens(current+1).getValue(), "FUNCTION")
           currentNode.addChild(funcNode)
@@ -125,46 +146,36 @@ object Compiler {
         }
         // Parses variable assignments and declarations
         else if (tokens(current).getDtype=="INT" && tokens(current+1).getDtype=="IDENTIFIER"){
+          // Declaration with no assignment
           if (tokens(current+2).getDtype=="SEMI_COLON"){
             val declNode=new ASTNode (tokens(current+1).getValue, "DECLARATION")
             currentNode.addChild (declNode)
             current+=2
 
           }
+          // Declaration with assignment
           else if (tokens(current+2).getDtype=="ASSIGNMENT"){
             val declNode=new ASTNode (tokens(current+1).getValue, "DECLARATION")
             val asgNode=new ASTNode (tokens(current+1).getValue, "ASSIGNMENT")
             current+=3
             val exprNode=parseExpression()
-            if (exprNode==null){
-              println("ERROR: INVALID ASSIGNMENT. NOW EXITTING")
-              System.exit(1)
-            }
+            if (exprNode==null) error ("ASSIGNMENT")
             asgNode.addChild(exprNode)
             declNode.addChild(asgNode)
             currentNode.addChild(declNode)
           }
 
-          if (tokens(current).getDtype!="SEMI_COLON"){
-            println("ERROR: SEMI COLON MISSING. NOW EXITTING")
-            System.exit(1)
-          }
+          if (tokens(current).getDtype!="SEMI_COLON") error ("SEMI_COLON") 
         }
+        // Parses only assignments
         else if (tokens(current).getDtype=="IDENTIFIER" && tokens(current+1).getDtype=="ASSIGNMENT"){
           val asgNode=new ASTNode (tokens(current).getValue, "ASSIGNMENT")
           current+=2
           val exprNode=parseExpression()
-          if (exprNode==null){
-            println("ERROR: INVALID ASSIGNMENT. NOW EXITTING")
-            System.exit(1)
-          }
+          if (exprNode==null) error ("ASSIGNMENT")
           asgNode.addChild(exprNode)
           currentNode.addChild(asgNode)
-          if (tokens(current).getDtype!="SEMI_COLON"){
-            println("ERROR: SEMI COLON MISSING. NOW EXITTING")
-            System.exit(1)
-          }
-          
+          if (tokens(current).getDtype!="SEMI_COLON") error ("SEMI_COLON")          
         }
         // Parses return statements
         else if (tokens(current).getDtype=="RETURN" ) {
@@ -172,20 +183,69 @@ object Compiler {
           var retNode=new ASTNode (null,"RETURN")
           // Recursively evaluate expression after return
           var exprNode=parseExpression ()
-
           if (exprNode!=null)retNode.addChild(exprNode)
           currentNode.addChild (retNode)
-          if (tokens(current).getDtype!="SEMI_COLON"){
-            println("ERROR: SEMI COLON MISSING. NOW EXITTING")
-            System.exit(1)
+          if (tokens(current).getDtype!="SEMI_COLON")error ("SEMI_COLON")
+        }
+        // Parses if statements
+        else if (tokens(current).getDtype=="IF"){
+          current+=1
+          val exprNode=parseExpression()
+          val ifNode=new ASTNode (null, "IF")
+          val condNode=new ASTNode (null, "CONDITIONAL")
+          condNode.addChild(exprNode)
+          condNode.addChild(ifNode)
+          currentNode.addChild(condNode)
+          val temp=currentNode
+          currentNode=ifNode
+          if (tokens(current).getDtype=="OPEN_BRACE"){
+            while (tokens(current).getDtype!="CLOSE_BRACE"){
+ //             tokens(current).printToken
+              if (tokens(current).getDtype=="INT" &&
+                  tokens(current+1).getDtype=="IDENTIFIER") error ("DECLARATION") 
+              else handleStatement
+              current+=1
+              if (current>=tokens.length) error ("CURLY_BRACE") 
+            }
           }
+          else handleStatement()
+          current+=1
+          // Parses the following else statements
+          while (tokens(current).getDtype=="ELSE"){
+            val elseNode=new ASTNode (null, "ELSE")
+            condNode.addChild(elseNode)
+            currentNode=elseNode
+            current+=1
+            if (tokens(current).getDtype=="IF"){
+              val ifNode=new ASTNode(null, "IF")
+              currentNode=ifNode
+              current+=1
+              val exprNode=parseExpression
+              val elseCondNode=new ASTNode (null, "CONDITIONAL")
+              elseNode.addChild(elseCondNode)
+              elseCondNode.addChild(exprNode)
+              elseCondNode.addChild(ifNode)
+            }
+            if (tokens(current).getDtype=="OPEN_BRACE"){
+              while (tokens(current).getDtype!="CLOSE_BRACE"){
+                if (tokens(current).getDtype=="INT" &&
+                    tokens(current+1).getDtype=="IDENTIFIER")error("DECLARATION")
+                else handleStatement
+                current+=1
+                if (current>=tokens.length) error ("CURLY_BRACE")              }
+            }
+            else handleStatement
+
+            current+=1
+            currentNode=condNode
+          }
+          currentNode=temp
         }
         // Parses expressions
         else {
           val exprNode=parseExpression()
           if (exprNode!=null) currentNode.addChild(exprNode)
         }
-        current+=1
       }
       def parseExpression () : ASTNode ={
         var andOne=parseAndExpression()
@@ -301,10 +361,7 @@ object Compiler {
         if (token.getDtype=="OPEN_PAREN"){
           current+=1
           var node=parseExpression ()
-          if (!(tokens(current).getDtype=="CLOSE_PAREN")){
-            println("ERROR: PARENTHESIS MISSING. NOW EXITING")
-            System.exit(1)
-          }
+          if (!(tokens(current).getDtype=="CLOSE_PAREN")) error ("PAREN")
           current+=1
           node
         }
@@ -321,7 +378,7 @@ object Compiler {
             unaryNode
           }   
         else {
-        //  println("RETURNING NULL FOR : " + token.getDtype + " WITH VAL: " + token.getValue)
+          //println("RETURNING NULL FOR : " + token.getDtype + " WITH VAL: " + token.getValue)
           null
         }
       }
@@ -334,6 +391,8 @@ object Compiler {
       var lines=""
       var env : HashMap [String, Int]=null
       var stackIndex=0
+      var branchCount=0
+      var condCount=0
       search(n)
       // Performs DFS through AST and generates assembly for each respective node
       def search (node : ASTNode){
@@ -373,10 +432,7 @@ object Compiler {
         }
         // For declarations, populates env and sets stack offset appropriately
         if (node.getDtype=="DECLARATION"){
-          if ((env.contains(node.getValue))){
-            println("ERROR: VARIABLE " + node.getValue + " DECLARED MORE THAN ONCE. NOW EXITTING.")
-            System.exit(1)
-          }
+          if ((env.contains(node.getValue))) error ("MULTI_DECLARATION")
           env+= (node.getValue -> stackIndex)
           stackIndex-=4
           // If value is declared and not initialized, initialize it to 0
@@ -392,13 +448,37 @@ object Compiler {
             codeGenerator.write(lines)
           }
         }
+        // For if/else statements, generate jumps appropriately
+        if (node.getDtype=="CONDITIONAL"){
+          codeGenerator.write(evalExpression (node.getChildren()(0), env))
+          lines="    cmpq         $0, %rax\n"
+          lines=lines+"    je           _branch"+branchCount+"\n"
+          codeGenerator.write(lines)
+          val currCond=condCount
+          def condFunc (c : ASTNode) = {
+            if (!(c.getDtype=="EXPRESSION")){
+              c.getChildren().foreach{
+                condCount+=1
+                (gc) => search(gc)
+              }
+
+                codeGenerator.write("    jmp          _post_conditional"+currCond+"\n")
+
+              if (branchCount<node.getChildren.length-2){
+                codeGenerator.write("_branch"+branchCount+":\n")
+                branchCount+=1
+                }
+              }
+          }
+          node.getChildren().foreach{
+            condFunc 
+          }
+          codeGenerator.write("_post_conditional"+currCond+":\n")
+        }
         // Evaluates expression, puts it in %rax, then moves that value to the
         // correct place in memory
         if (node.getDtype=="ASSIGNMENT"){
-          if (!(env.contains(node.getValue))){
-            println("ERROR: VARIABLE " + node.getValue + " NOT DEFINED. NOW EXITTING.")
-            System.exit(1)
-          }
+          if (!(env.contains(node.getValue))) error ("UNDEFINED")
           lines=evalExpression (node.getChildren()(0), env)
           if (env.get(node.getValue).get!=0) lines=lines+"    movq        %rax, "+env.get(node.getValue).get+"(%rbp)\n"
           else lines=lines+"    movq       %rax, (%rbp)\n"
@@ -480,6 +560,18 @@ object Compiler {
       else if (op=="&&")
         asm=asm+"    cmpq  "+spc+"$0, %rcx\n    setne "+spc+"%cl\n    cmpq  "+spc+"$0, %rax\n    movq  "+spc+"$0, %rax\n    setne "+spc+"$al\n    andb  "+spc+"%cl, %al\n"
       asm
+    }
+    def error (err : String = null){
+      if (err=="SEMI_COLON") println("ERROR: NO SEMI COLON DETECTED. NOW EXITTING")
+      else if (err=="ASSIGNMENT") println("ERROR: INVALID ASSIGNMENT. NOW EXITTING")
+      else if (err=="PAREN") println("ERROR: NO ENDING PARENTHESIS DETECTED. NOW EXITTING")
+      else if (err=="CURLY_BRACE") println ("ERROR: CURLY BRACES MISMATCHED. NOW EXITTING")
+      else if (err=="DECLARATION") println("ERROR: DECLARATION WITHIN IF/ELSE STATEMENT. NOW EXITTING")
+      else if (err=="MULTI_DECLARATION") println("ERROR: VARIABLE DECLARED MULTIPLE TIMES. NOW EXITTING")
+      else if (err=="UNDEFINED") println("ERROR: VARIABLE UNDEFINED. NOW EXITTING")
+      else println("UNKNOWN ERROR. NOW EXITTING")
+      System.exit(1)
+      
     }
     def printTokens(){
       for (i<-0 to tokens.length-1) 

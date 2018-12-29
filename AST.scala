@@ -2,13 +2,16 @@ class AST (var root : ASTNode) {
   def getRoot () : ASTNode=root
  
   def printAST() {
-    var current=root
+    val current=root
     printNode(current)
     
     def printNode(node : ASTNode){
-      println ("NODE VAL: " + node.getValue + "\t NODE TYPE: " + node.getDtype + "\tCHILDREN: " + node.getChildren().length)
-      for (n <- node.getChildren()){
-        printNode(n)
+      if (node==null) println ("NODE IS NULL")
+      else {
+        println ("NODE VAL: " + node.getValue + "\t NODE TYPE: " + node.getDtype + "\tCHILDREN: " + node.getChildren().length)
+        for (n <- node.getChildren()){
+          printNode(n)
+        }
       }
     
     }
