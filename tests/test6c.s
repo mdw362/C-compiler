@@ -19,13 +19,16 @@ _main:
     movq       %rax, (%rbp)
     movq	$12, %rax
     movq        %rax, -4(%rbp)
-    jmp          _post_conditional
+    jmp          _post_conditional0
 _branch0:
     movq	$3, %rax
     movq       %rax, (%rbp)
     movq	$2, %rax
     movq        %rax, -4(%rbp)
-_post_conditional:
+    jmp          _post_conditional0
+_post_conditional0:
+    movq	(%rbp), %rax
+    movq        $0, %rax
     movq	(%rbp), %rax
     movq        %rbp, %rsp
     popq        %rbp

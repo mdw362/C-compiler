@@ -15,11 +15,14 @@ _main:
     je           _branch0
     movq	$7, %rax
     movq       %rax, (%rbp)
-    jmp          _post_conditional
+    jmp          _post_conditional0
 _branch0:
     movq	$3, %rax
     movq       %rax, (%rbp)
-_post_conditional:
+    jmp          _post_conditional0
+_post_conditional0:
+    movq	(%rbp), %rax
+    movq        $0, %rax
     movq	(%rbp), %rax
     movq        %rbp, %rsp
     popq        %rbp

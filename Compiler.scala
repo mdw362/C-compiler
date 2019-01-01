@@ -3,7 +3,7 @@ import java.io._
 import scala.util.matching.Regex
 import Array._
 import scala.collection.mutable.HashMap
-
+import scala.collection.mutable.Stack
 object Compiler {
   def main (args: Array[String]){
     var cFile=args(0)
@@ -14,9 +14,9 @@ object Compiler {
       analyzeChar()
     }
     // Primary execution
-    //printTokens()
+ //   printTokens()
     parseStatement()
-   // ast.printAST()
+//    ast.printAST()
     
 //    System.exit(0)
     generateCode()
@@ -116,6 +116,11 @@ object Compiler {
       else if (word==">")                    dtype="GREATER_THAN"
       else if (word=="<=")                   dtype="LESS_EQUAL_THAN"
       else if (word==">=")                   dtype="GREATER_EQUAL_THAN"
+      else if (word=="for")                  dtype="FOR"
+      else if (word=="break")                dtype="BREAK"
+      else if (word=="while")                dtype="WHILE"
+      else if (word=="do")                   dtype="DO"
+      else if (word=="continue")             dtype="CONTINUE"
       else if (word=="if")                   dtype="IF"
       else if (word=="else")                 dtype="ELSE"
       else if (word=="return")               dtype="RETURN"
@@ -175,7 +180,8 @@ object Compiler {
           if (exprNode==null) error ("ASSIGNMENT")
           asgNode.addChild(exprNode)
           currentNode.addChild(asgNode)
-          if (tokens(current).getDtype!="SEMI_COLON") error ("SEMI_COLON")          
+          if (tokens(current).getDtype!="SEMI_COLON" && currentNode.getDtype!="FOR") 
+            error ("SEMI_COLON")      
         }
         // Parses return statements
         else if (tokens(current).getDtype=="RETURN" ) {
@@ -241,10 +247,92 @@ object Compiler {
           }
           currentNode=temp
         }
+        else if (tokens(current).getDtype=="DO"){
+          current+=1
+          val doNode=new ASTNode (null, "DO")
+          currentNode.addChild(doNode)
+          val temp=currentNode
+          currentNode=doNode
+          if (tokens(current).getDtype=="OPEN_BRACE"){
+            while (tokens(current).getDtype!="CLOSE_BRACE"){
+              handleStatement
+              current+=1
+              if (current>=tokens.length) error ("CURLY_BRACE")
+            }
+          }
+          else handleStatement
+          current+=1
+          if (tokens(current).getDtype!="WHILE") error _
+          current+=1
+          currentNode.addChild(parseExpression)
+          if (tokens(current).getDtype!="SEMI_COLON") error ("SEMI_COLON")
+          currentNode=temp
+
+        }
+        else if (tokens(current).getDtype=="WHILE"){
+          current+=1
+          val whileNode=new ASTNode (null, "WHILE")
+          currentNode.addChild(whileNode)
+          val temp=currentNode
+          val exprNode=parseExpression
+          whileNode.addChild(exprNode)
+          currentNode=whileNode
+ //         if (tokens(current).getDtype!="OPEN_PAREN") error ("PAREN")
+ //         current+=1
+          if (tokens(current).getDtype=="OPEN_BRACE"){
+            while (tokens(current).getDtype!="CLOSE_BRACE"){
+              handleStatement
+              current+=1
+              if (current>=tokens.length) error ("CURLY_BRACE")
+            }
+          }
+          else handleStatement
+          currentNode=temp
+        }
+        else if (tokens(current).getDtype=="FOR"){
+          val temp=currentNode
+
+          val forNode=new ASTNode (null, "FOR")
+          currentNode.addChild(forNode)
+          currentNode=forNode
+          if (tokens(current+1).getDtype!="OPEN_PAREN") error ("PAREN")
+          var i=0
+          current+=2 // skip open paren
+          // Evaluate for loop parameters
+          
+          for (i <- 0 to 2){
+            if (!(i==2 && tokens(current).getDtype=="CLOSE_PAREN")){
+              handleStatement
+              current+=1
+            }
+          }
+          current+=1
+          if (tokens(current).getDtype=="OPEN_BRACE"){
+            while (tokens(current).getDtype!="CLOSE_BRACE"){
+              handleStatement
+              current+=1
+              if (current>=tokens.length) error ("CURLY_BRACE")
+            }
+          }
+          else handleStatement
+          currentNode=temp
+        }
+        else if (tokens(current).getDtype=="BREAK"){
+          if (tokens(current+1).getDtype!="SEMI_COLON") error ("SEMI_COLON")
+          currentNode.addChild (new ASTNode (null, "BREAK"))
+       //   current+=1
+        }
+        else if (tokens(current).getDtype=="CONTINUE"){
+          if (tokens(current+1).getDtype!="SEMI_COLON") error("SEMI_COLON")
+          currentNode.addChild(new ASTNode (null, "CONTINUE"))
+        //  current+=1
+        }
         // Parses expressions
         else {
-          val exprNode=parseExpression()
+          val exprNode=parseExpression
           if (exprNode!=null) currentNode.addChild(exprNode)
+          else if (currentNode.getDtype=="FOR") 
+            currentNode.addChild(new ASTNode (null, "EMPTY"))
         }
       }
       def parseExpression () : ASTNode ={
@@ -272,7 +360,7 @@ object Compiler {
         while (token.getDtype()=="AND"){
           current+=1
           exprNode=new ASTNode (token.getValue, "EXPRESSION")
-          eqTwo=parseEqualityExpression()
+          eqTwo=parseEqualityExpression
           exprNode.addChild(eqOne)
           exprNode.addChild(eqTwo)
           eqOne=exprNode
@@ -393,6 +481,8 @@ object Compiler {
       var stackIndex=0
       var branchCount=0
       var condCount=0
+      var loopTest= 0
+      var loops = Stack [String]()
       search(n)
       // Performs DFS through AST and generates assembly for each respective node
       def search (node : ASTNode){
@@ -446,13 +536,20 @@ object Compiler {
             lines=evalExpression (node.getChildren()(0).getChildren()(0), env)
             lines=lines+"    pushq        %rax\n"
             codeGenerator.write(lines)
+            lines=""
           }
         }
         // For if/else statements, generate jumps appropriately
         if (node.getDtype=="CONDITIONAL"){
           codeGenerator.write(evalExpression (node.getChildren()(0), env))
           lines="    cmpq         $0, %rax\n"
-          lines=lines+"    je           _branch"+branchCount+"\n"
+          // if there is no else statement, we want to jump to statements
+          // under if. If there is an else statement, we jump to 
+          // statements under if
+          if (node.getChildren.length>2)
+            lines=lines+"    je           _branch"+branchCount+"\n"
+          else
+            lines=lines+"    jne          _post_conditional"+condCount+"\n"
           codeGenerator.write(lines)
           val currCond=condCount
           def condFunc (c : ASTNode) = {
@@ -461,14 +558,15 @@ object Compiler {
                 condCount+=1
                 (gc) => search(gc)
               }
-
+              if (node.getChildren.length>2){
                 codeGenerator.write("    jmp          _post_conditional"+currCond+"\n")
 
-              if (branchCount<node.getChildren.length-2){
-                codeGenerator.write("_branch"+branchCount+":\n")
-                branchCount+=1
+                if (branchCount<node.getChildren.length-2){
+                  codeGenerator.write("_branch"+branchCount+":\n")
+                  branchCount+=1
                 }
               }
+            }
           }
           node.getChildren().foreach{
             condFunc 
@@ -487,6 +585,79 @@ object Compiler {
         if (node.getDtype=="EXPRESSION"){
           lines=evalExpression (node, env)
           codeGenerator.write(lines)
+        }
+        if (node.getDtype=="WHILE"){
+          val currWhile=loopTest
+          loops.push("WHILE")
+          loopTest+=1
+          lines=lines+evalExpression (node.getChildren()(0), env)
+          lines=lines+"    cmpq          $0, %rax\n"
+          lines=lines+"    jne           _post_loop" + currWhile+"\n"
+ //         lines=lines+"    jmp           _post_loop"+currWhile+"\n"
+          lines=lines+"_loop" + currWhile+":\n"
+          codeGenerator.write(lines)
+          var i=0
+          for (i <- 0 to node.getChildren.length-1){
+            if (i>0) search(node.getChildren()(i))
+          }
+          lines=""
+          codeGenerator.write("_post_loop"+currWhile+":\n")
+          loops.pop
+        }
+        if (node.getDtype=="DO"){
+          val currDo=loopTest
+          loopTest+=1
+          loops.push("WHILE")
+          codeGenerator.write("_loop"+currDo+":\n")
+          var i=0
+          for (i <- 0 to node.getChildren.length-1){
+            search (node.getChildren()(i))
+          }
+          lines="    cmpq          $0, %rax\n"
+          lines=lines+"    jne          _loop"+currDo+"\n"
+          codeGenerator.write(lines+"_post_loop"+currDo+"\n")
+          lines=""
+          loops.pop
+        }
+        if (node.getDtype=="FOR"){
+          val currFor=loopTest
+          loops.push("FOR")
+          loopTest+=1
+          search (node.getChildren()(0))
+          if (node.getChildren()(1).getDtype!="EMPTY"){
+            search (node.getChildren()(1))
+            codeGenerator.write("    cmpq         $0, %rax\n    je            _post_loop"+currFor+"\n")
+          }
+          codeGenerator.write("_loop"+currFor+":\n")
+          var i=0
+          for (i <- 3 to node.getChildren.length-1)
+            search (node.getChildren()(i))
+          codeGenerator.write("_for_exp"+currFor+":\n")
+          lines=""
+          if (node.getChildren()(2).getDtype!="EMPTY")
+            search (node.getChildren()(2))
+          
+          if (node.getChildren()(1).getDtype!="EMPTY"){
+            search (node.getChildren()(1))
+            lines="    cmpq          $0, %rax\n    jne          _loop"+currFor +"\n"
+          }
+          else {
+            lines="    jmp           _loop"+currFor+"\n"
+          }
+          codeGenerator.write(lines+"_post_loop"+currFor +":\n")
+          lines=""
+          loops.pop
+        }
+        if (node.getDtype=="BREAK"){
+          if (loops.isEmpty) error ("ERROR: BREAK STATEMENT USED OUTSIDE OF LOOP. NOW EXITTING")
+          codeGenerator.write("    jmp           _post_loop"+(loopTest-1) +"\n")
+        }
+        if (node.getDtype=="CONTINUE"){
+          if (loops.isEmpty) error ("ERROR: CONTINUE STATEMENT USED OUTSIDE OF LOOP. NOW EXITTING")
+          if (loops.top=="FOR")
+            codeGenerator.write("    jmp           _for_exp"+(loopTest-1)+"\n")
+          else if (loops.top=="WHILE")
+            codeGenerator.write("    jmp           _loop"+(loopTest-1)+"\n")
         }
       }
       codeGenerator.close()
@@ -564,12 +735,13 @@ object Compiler {
     def error (err : String = null){
       if (err=="SEMI_COLON") println("ERROR: NO SEMI COLON DETECTED. NOW EXITTING")
       else if (err=="ASSIGNMENT") println("ERROR: INVALID ASSIGNMENT. NOW EXITTING")
-      else if (err=="PAREN") println("ERROR: NO ENDING PARENTHESIS DETECTED. NOW EXITTING")
+      else if (err=="PAREN") println("ERROR: PARENTHESIS INCORRECTLY MATCHED OR WRITTEN. NOW EXITTING")
       else if (err=="CURLY_BRACE") println ("ERROR: CURLY BRACES MISMATCHED. NOW EXITTING")
       else if (err=="DECLARATION") println("ERROR: DECLARATION WITHIN IF/ELSE STATEMENT. NOW EXITTING")
       else if (err=="MULTI_DECLARATION") println("ERROR: VARIABLE DECLARED MULTIPLE TIMES. NOW EXITTING")
       else if (err=="UNDEFINED") println("ERROR: VARIABLE UNDEFINED. NOW EXITTING")
-      else println("UNKNOWN ERROR. NOW EXITTING")
+      else if (err==null) println("UNKNOWN ERROR. NOW EXITTING")
+      else println(err)
       System.exit(1)
       
     }
