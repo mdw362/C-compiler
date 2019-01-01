@@ -55,3 +55,19 @@ _post_loop1
     movq        %rbp, %rsp
     popq        %rbp
     ret
+.globl _func
+_func:
+    pushq       %rbp
+    movq        %rsp, %rbp
+    movq	$0, %rax
+    pushq        %rax
+    movq	(%rbp), %rax
+    pushq       %rax
+    movq	$1, %rax
+    popq        %rcx
+    addq        %rcx, %rax
+    movq       %rax, (%rbp)
+    movq	(%rbp), %rax
+    movq        %rbp, %rsp
+    popq        %rbp
+    ret

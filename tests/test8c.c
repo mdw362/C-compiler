@@ -13,3 +13,10 @@ int main ()
   } while (x<16);
   return x;
 }
+int func ()
+{
+  int x=0;
+  x=x+1;
+  return x;
+
+}

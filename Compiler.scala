@@ -16,7 +16,7 @@ object Compiler {
     // Primary execution
  //   printTokens()
     parseStatement()
-//    ast.printAST()
+ //   ast.printAST()
     
 //    System.exit(0)
     generateCode()
@@ -144,10 +144,21 @@ object Compiler {
       def handleStatement (){ 
         // Parses function
         if (tokens(current).getDtype=="INT" && tokens(current+1).getDtype=="IDENTIFIER" && tokens(current+2).getDtype=="OPEN_PAREN"){
-          var funcNode=new ASTNode (tokens(current+1).getValue(), "FUNCTION")
+          val temp=currentNode 
+          val funcNode=new ASTNode (tokens(current+1).getValue(), "FUNCTION")
           currentNode.addChild(funcNode)
           currentNode=funcNode
-          current+=2
+          current+=4
+          //TODO: Add support for function params
+          if (tokens(current).getDtype=="OPEN_BRACE"){
+            while (tokens(current).getDtype!="CLOSE_BRACE"){
+              handleStatement
+              current+=1
+              if (current>=tokens.length) error ("CURLY_BRACE")
+            }
+          }
+          else error ("CURLY_BRACE")
+          currentNode=temp
         }
         // Parses variable assignments and declarations
         else if (tokens(current).getDtype=="INT" && tokens(current+1).getDtype=="IDENTIFIER"){
@@ -188,7 +199,7 @@ object Compiler {
           current+=1
           var retNode=new ASTNode (null,"RETURN")
           // Recursively evaluate expression after return
-          var exprNode=parseExpression ()
+          var exprNode=parseExpression
           if (exprNode!=null)retNode.addChild(exprNode)
           currentNode.addChild (retNode)
           if (tokens(current).getDtype!="SEMI_COLON")error ("SEMI_COLON")
@@ -196,7 +207,7 @@ object Compiler {
         // Parses if statements
         else if (tokens(current).getDtype=="IF"){
           current+=1
-          val exprNode=parseExpression()
+          val exprNode=parseExpression
           val ifNode=new ASTNode (null, "IF")
           val condNode=new ASTNode (null, "CONDITIONAL")
           condNode.addChild(exprNode)
