@@ -1,20 +1,20 @@
 .globl _main
 _main:
-    pushq       %rbp
-    movq        %rsp, %rbp
-    movq	$4, %rax
-    pushq        %rax
-    movq	$6, %rax
-    pushq        %rax
-    movq	$1, %rax
-    movq       %rax, (%rbp)
-    movq	$2, %rax
-    movq        %rax, -4(%rbp)
-    movq	(%rbp), %rax
-    pushq       %rax
-    movq	-4(%rbp), %rax
-    popq        %rcx
-    addq        %rcx, %rax
-    movq        %rbp, %rsp
-    popq        %rbp
+    pushl       %ebp
+    movl        %esp, %ebp
+    movl	$4, %eax
+    pushl	%eax
+    movl	$6, %eax
+    pushl	%eax
+    movl	$1, %eax
+    movl	%eax, (%ebp)
+    movl	$2, %eax
+    movl	%eax,-4(%ebp)
+    movl	(%ebp), %eax
+    pushl	%eax
+    movl	-4(%ebp), %eax
+    popl	%ecx
+    addl	%ecx, %eax
+    movl	%ebp, %esp
+    popl	%ebp
     ret

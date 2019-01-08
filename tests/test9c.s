@@ -1,37 +1,38 @@
 .globl _main
 _main:
-    pushq       %rbp
-    movq        %rsp, %rbp
-    movq	$5, %rax
-    pushq        %rax
-    movq	(%rbp), %rax
-    pushq       %rax
-    subq	$8, %rax
-    xorq	%rdx, rdx
-    movq	0x20, %rcx
-    idivq	%rcx
-    subq	%rdx, %rsp
-    pushq	%rdx
-    movq	(%rbp), %rax
-    pushq       %rax
-    callq       _fn
-    addq        $0x4, %rsp
-    popq	%rdx
-    addq	%rdx, %rsp
-    popq        %rcx
-    addq        %rcx, %rax
-    pushq        %rax
-    movq	-4(%rbp), %rax
-    movq        %rbp, %rsp
-    popq        %rbp
+    pushl       %ebp
+    movl        %esp, %ebp
+    movl	$5, %eax
+    pushl	%eax
+    movl	(%ebp), %eax
+    pushl	%eax
+    movl	%esp, %eax
+    subl	$8, %eax
+    xorl        %edx, rdx
+    movl	0x20, %ecx
+    idivl	%ecx
+    subl	%edx, %esp
+    pushl	%edx
+    movl	(%ebp), %eax
+    pushl       %eax
+    call	_fn
+    addl	$0x4, %esp
+    popl	%edx
+    addl	%edx, %esp
+    popl	%ecx
+    addl	%ecx, %eax
+    pushl	%eax
+    movl	-4(%ebp), %eax
+    movl	%ebp, %esp
+    popl	%ebp
     ret
 .globl _fn
 _fn:
-    pushq       %rbp
-    movq        %rsp, %rbp
-    movq	$3, %rax
-    movq      %rax, 8%(rbp)
-    movq	8(%rbp), %rax
-    movq        %rbp, %rsp
-    popq        %rbp
+    pushl       %ebp
+    movl        %esp, %ebp
+    movl	$3, %eax
+    movl	%eax, 8(%ebp)
+    movl	8(%ebp), %eax
+    movl	%ebp, %esp
+    popl	%ebp
     ret

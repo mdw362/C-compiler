@@ -1,63 +1,61 @@
 .globl _main
 _main:
-    pushq       %rbp
-    movq        %rsp, %rbp
-    movq	$4, %rax
-    pushq        %rax
-    movq	$9, %rax
-    pushq        %rax
-    movq	(%rbp), %rax
-    pushq       %rax
-    movq	$5, %rax
-    popq        %rcx
-    cmpq        %rax, %rcx
-    movq        $0, %rax
-    setg        %al
-    cmpq         $0, %rax
-    je           _branch0
-    movq	$7, %rax
-    movq       %rax, (%rbp)
-    movq	$0, %rax
-    movq        %rax, -4(%rbp)
-    jmp          _post_conditional0
+    pushl       %ebp
+    movl        %esp, %ebp
+    movl	$4, %eax
+    pushl	%eax
+    movl	$9, %eax
+    pushl	%eax
+    movl	(%ebp), %eax
+    pushl	%eax
+    movl	$5, %eax
+    popl	%ecx
+    cmpl	%eax, %ecx
+    movl	$0, %eax
+    setg	%al
+    cmpl	$0, %eax
+    je          _branch0
+    movl	$7, %eax
+    movl	%eax, (%ebp)
+    movl	$0, %eax
+    movl	%eax,-4(%ebp)
+    jmp	_post_conditional0
 _branch0:
-    movq	(%rbp), %rax
-    pushq       %rax
-    movq	$9, %rax
-    popq        %rcx
-    cmpq        %rax, %rcx
-    movq        $0, %rax
-    setle       %al
-    cmpq         $0, %rax
-    je           _branch1
-    movq	$23, %rax
-    movq       %rax, (%rbp)
-    movq	$2, %rax
-    movq        %rax, -4(%rbp)
-    jmp          _post_conditional2
-_post_conditional2:
-    jmp          _post_conditional0
+    movl	(%ebp), %eax
+    pushl	%eax
+    movl	$9, %eax
+    popl	%ecx
+    cmpl	%eax, %ecx
+    movl	$0, %eax
+    setle	%al
+    cmpl	$0, %eax
+    je          _branch1
+    movl	$23, %eax
+    movl	%eax, (%ebp)
+    movl	$2, %eax
+    movl	%eax,-4(%ebp)
+    jmp	_post_conditional0
 _branch1:
-    movq	$3, %rax
-    movq       %rax, (%rbp)
-    jmp          _post_conditional0
+    movl	$3, %eax
+    movl	%eax, (%ebp)
 _post_conditional0:
-    movq	(%rbp), %rax
-    pushq       %rax
-    movq	-4(%rbp), %rax
-    popq        %rcx
-    addq        %rcx, %rax
-    movq	-4(%rbp), %rax
-    pushq       %rax
-    movq	(%rbp), %rax
-    popq        %rcx
-    imulq        %rcx, %rax
-    movq        %rax, -4(%rbp)
-    movq	(%rbp), %rax
-    pushq       %rax
-    movq	-4(%rbp), %rax
-    popq        %rcx
-    addq        %rcx, %rax
-    movq        %rbp, %rsp
-    popq        %rbp
+    movl	(%ebp), %eax
+    pushl	%eax
+    movl	-4(%ebp), %eax
+    popl	%ecx
+    addl	%ecx, %eax
+    movl	%eax, (%ebp)
+    movl	-4(%ebp), %eax
+    pushl	%eax
+    movl	(%ebp), %eax
+    popl	%ecx
+    imul	%ecx, %eax
+    movl	%eax,-4(%ebp)
+    movl	(%ebp), %eax
+    pushl	%eax
+    movl	-4(%ebp), %eax
+    popl	%ecx
+    addl	%ecx, %eax
+    movl	%ebp, %esp
+    popl	%ebp
     ret

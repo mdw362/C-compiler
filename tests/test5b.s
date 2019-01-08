@@ -1,14 +1,14 @@
 .globl _main
 _main:
-    pushq       %rbp
-    movq        %rsp, %rbp
-    movq        $0, %rax
-    pushq       %rax
-    movq	$5, %rax
-    movq       %rax, (%rbp)
-    movq	$3, %rax
-    movq       %rax, (%rbp)
-    movq	(%rbp), %rax
-    movq        %rbp, %rsp
-    popq        %rbp
+    pushl       %ebp
+    movl        %esp, %ebp
+    movl	$0, %eax
+    pushl	%eax
+    movl	$5, %eax
+    movl	%eax, (%ebp)
+    movl	$3, %eax
+    movl	%eax, (%ebp)
+    movl	(%ebp), %eax
+    movl	%ebp, %esp
+    popl	%ebp
     ret

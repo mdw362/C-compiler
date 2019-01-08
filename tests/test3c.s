@@ -1,16 +1,20 @@
 .globl _main
 _main:
-    movq	$5, %rax
-    push 	%rax
-    movq	$4, %rax
-    pop 	%rcx
-    imulq	%rcx, %rax
-    push 	%rax
-    movq	$5, %rax
-    pop 	%rcx
-    imulq	%rcx, %rax
-    push 	%rax
-    movq	$2, %rax
-    pop 	%rcx
-    idivq	%rcx, %rax
-ret
+    pushl       %ebp
+    movl        %esp, %ebp
+    movl	$5, %eax
+    pushl	%eax
+    movl	$4, %eax
+    popl	%ecx
+    imul	%ecx, %eax
+    pushl	%eax
+    movl	$5, %eax
+    popl	%ecx
+    imul	%ecx, %eax
+    pushl	%eax
+    movl	$2, %eax
+    popl	%ecx
+    idivl	%ecx, %eax
+    movl	%ebp, %esp
+    popl	%ebp
+    ret

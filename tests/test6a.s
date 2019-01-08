@@ -1,29 +1,26 @@
 .globl _main
 _main:
-    pushq       %rbp
-    movq        %rsp, %rbp
-    movq	$4, %rax
-    pushq        %rax
-    movq	(%rbp), %rax
-    pushq       %rax
-    movq	$5, %rax
-    popq        %rcx
-    cmpq        %rax, %rcx
-    movq        $0, %rax
-    setg        %al
-    cmpq         $0, %rax
-    je           _branch0
-    movq	$7, %rax
-    movq       %rax, (%rbp)
-    jmp          _post_conditional0
+    pushl       %ebp
+    movl        %esp, %ebp
+    movl	$4, %eax
+    pushl	%eax
+    movl	(%ebp), %eax
+    pushl	%eax
+    movl	$5, %eax
+    popl	%ecx
+    cmpl	%eax, %ecx
+    movl	$0, %eax
+    setg	%al
+    cmpl	$0, %eax
+    je          _branch0
+    movl	$7, %eax
+    movl	%eax, (%ebp)
+    jmp	_post_conditional0
 _branch0:
-    movq	$3, %rax
-    movq       %rax, (%rbp)
-    jmp          _post_conditional0
+    movl	$3, %eax
+    movl	%eax, (%ebp)
 _post_conditional0:
-    movq	(%rbp), %rax
-    movq        $0, %rax
-    movq	(%rbp), %rax
-    movq        %rbp, %rsp
-    popq        %rbp
+    movl	(%ebp), %eax
+    movl	%ebp, %esp
+    popl	%ebp
     ret

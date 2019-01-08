@@ -2,9 +2,7 @@
 _main:
     pushl       %ebp
     movl        %esp, %ebp
-    movl	$4, %eax
-    pushl	%eax
-    movl	(%ebp), %eax
+    movl	$0, %eax
     movl	%ebp, %esp
     popl	%ebp
     ret

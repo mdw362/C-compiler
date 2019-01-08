@@ -1,150 +1,152 @@
 .globl _main
 _main:
-    pushq       %rbp
-    movq        %rsp, %rbp
-    movq	$3, %rax
-    pushq        %rax
-    subq	$8, %rax
-    xorq	%rdx, rdx
-    movq	0x20, %rcx
-    idivq	%rcx
-    subq	%rdx, %rsp
-    pushq	%rdx
-    movq	(%rbp), %rax
-    pushq       %rax
-    callq       _fnOne
-    addq        $0x4, %rsp
-    popq	%rdx
-    addq	%rdx, %rsp
-    pushq        %rax
-    subq	$12, %rax
-    xorq	%rdx, rdx
-    movq	0x20, %rcx
-    idivq	%rcx
-    subq	%rdx, %rsp
-    pushq	%rdx
-    callq       _fnTwo
-    addq        $0x8, %rsp
-    popq	%rdx
-    addq	%rdx, %rsp
-    pushq        %rax
-    movq	-8(%rbp), %rax
-    movq        %rbp, %rsp
-    popq        %rbp
+    pushl       %ebp
+    movl        %esp, %ebp
+    movl	$3, %eax
+    pushl	%eax
+    movl	%esp, %eax
+    subl	$8, %eax
+    xorl        %edx, rdx
+    movl	0x20, %ecx
+    idivl	%ecx
+    subl	%edx, %esp
+    pushl	%edx
+    movl	(%ebp), %eax
+    pushl       %eax
+    call	_fnOne
+    addl	$0x4, %esp
+    popl	%edx
+    addl	%edx, %esp
+    pushl	%eax
+    movl	%esp, %eax
+    subl	$12, %eax
+    xorl        %edx, rdx
+    movl	0x20, %ecx
+    idivl	%ecx
+    subl	%edx, %esp
+    pushl	%edx
+    call	_fnTwo
+    addl	$0x8, %esp
+    popl	%edx
+    addl	%edx, %esp
+    pushl	%eax
+    movl	-8(%ebp), %eax
+    movl	%ebp, %esp
+    popl	%ebp
     ret
 .globl _fnOne
 _fnOne:
-    pushq       %rbp
-    movq        %rsp, %rbp
-    movq	$1, %rax
-    pushq        %rax
-    movq	8(%rbp), %rax
-    pushq       %rax
-    movq	$55, %rax
-    popq        %rcx
-    cmpq        %rax, %rcx
-    movq        $0, %rax
-    setg        %al
-    cmpq         $0, %rax
-    je           _branch0
-    movq	8(%rbp), %rax
-    pushq       %rax
-    movq	$12, %rax
-    popq        %rcx
-    imulq        %rcx, %rax
-    movq       %rax, (%rbp)
-    movq	(%rbp), %rax
-    movq        %rbp, %rsp
-    popq        %rbp
+    pushl       %ebp
+    movl        %esp, %ebp
+    movl	$1, %eax
+    pushl	%eax
+    movl	8(%ebp), %eax
+    pushl	%eax
+    movl	$55, %eax
+    popl	%ecx
+    cmpl	%eax, %ecx
+    movl	$0, %eax
+    setg	%al
+    cmpl	$0, %eax
+    je          _branch0
+    movl	8(%ebp), %eax
+    pushl	%eax
+    movl	$12, %eax
+    popl	%ecx
+    imul	%ecx, %eax
+    movl	%eax, (%ebp)
+    movl	(%ebp), %eax
+    movl	%ebp, %esp
+    popl	%ebp
     ret
-_branch0
-    movq	8(%rbp), %rax
-    pushq       %rax
-    movq	$4, %rax
-    popq        %rcx
-    cmpq        %rax, %rcx
-    movq        $0, %rax
-    setl        %al
-    cmpq         $0, %rax
-    je           _branch1
-    movq	$5, %rax
-    movq       %rax, (%rbp)
-    movq	(%rbp), %rax
-    pushq       %rax
-    movq	$1, %rax
-    popq        %rcx
-    addq        %rcx, %rax
-    movq      %rax, 8%(rbp)
-    jmp        _post_conditional0
-_branch1
-    movq	8(%rbp), %rax
-    pushq       %rax
-    movq	$30, %rax
-    popq        %rcx
-    cmpq        %rax, %rcx
-    movq        $0, %rax
-    setg        %al
-    cmpq         $0, %rax
-    je           _branch2
-    movq	$2, %rax
-    movq       %rax, (%rbp)
-    movq	(%rbp), %rax
-    pushq       %rax
-    movq	$9, %rax
-    popq        %rcx
-    addq        %rcx, %rax
-    movq      %rax, 8%(rbp)
-    jmp        _post_conditional0
-_branch2
-    movq	$7, %rax
-    movq      %rax, 8%(rbp)
-_post_conditional_0
-    movq	$2, %rax
-    pushq        %rax
-    movq	8(%rbp), %rax
-    pushq       %rax
-    movq	-4(%rbp), %rax
-    popq        %rcx
-    addq        %rcx, %rax
-    movq        %rbp, %rsp
-    popq        %rbp
+_branch0:
+    movl	8(%ebp), %eax
+    pushl	%eax
+    movl	$4, %eax
+    popl	%ecx
+    cmpl	%eax, %ecx
+    movl	$0, %eax
+    setl	%al
+    cmpl	$0, %eax
+    je          _branch1
+    movl	$5, %eax
+    movl	%eax, (%ebp)
+    movl	(%ebp), %eax
+    pushl	%eax
+    movl	$1, %eax
+    popl	%ecx
+    addl	%ecx, %eax
+    movl	%eax, 8(%ebp)
+    jmp	_post_conditional0
+_branch1:
+    movl	8(%ebp), %eax
+    pushl	%eax
+    movl	$30, %eax
+    popl	%ecx
+    cmpl	%eax, %ecx
+    movl	$0, %eax
+    setg	%al
+    cmpl	$0, %eax
+    je          _branch2
+    movl	$2, %eax
+    movl	%eax, (%ebp)
+    movl	(%ebp), %eax
+    pushl	%eax
+    movl	$9, %eax
+    popl	%ecx
+    addl	%ecx, %eax
+    movl	%eax, 8(%ebp)
+    jmp	_post_conditional0
+_branch2:
+    movl	$7, %eax
+    movl	%eax, 8(%ebp)
+_post_conditional0:
+    movl	$2, %eax
+    pushl	%eax
+    movl	8(%ebp), %eax
+    pushl	%eax
+    movl	-4(%ebp), %eax
+    popl	%ecx
+    addl	%ecx, %eax
+    movl	%ebp, %esp
+    popl	%ebp
     ret
 .globl _fnTwo
 _fnTwo:
-    pushq       %rbp
-    movq        %rsp, %rbp
-    movq	$0, %rax
-    pushq        %rax
-    movq	$0, %rax
-    pushq        %rax
+    pushl       %ebp
+    movl        %esp, %ebp
+    movl	$0, %eax
+    pushl	%eax
+    movl	$0, %eax
+    pushl	%eax
 _loop0:
-    movq	(%rbp), %rax
-    pushq       %rax
-    movq	8(%rbp), %rax
-    popq        %rcx
-    addq        %rcx, %rax
-    movq       %rax, (%rbp)
-    movq	(%rbp), %rax
-    pushq       %rax
-    movq	12(%rbp), %rax
-    popq        %rcx
-    addq        %rcx, %rax
-    movq       %rax, (%rbp)
-    movq	(%rbp), %rax
-    pushq       %rax
-    movq	$10, %rax
-    popq        %rcx
-    cmpq        %rax, %rcx
-    movq        $0, %rax
-    setg        %al
-    cmpq         $0, %rax
-    je           _post_conditional1
-    jmp           _post_loop0
-_post_conditional_1
+    movl	(%ebp), %eax
+    pushl	%eax
+    movl	8(%ebp), %eax
+    popl	%ecx
+    addl	%ecx, %eax
+    movl	%eax, (%ebp)
+    movl	(%ebp), %eax
+    pushl	%eax
+    movl	12(%ebp), %eax
+    popl	%ecx
+    addl	%ecx, %eax
+    movl	%eax, (%ebp)
+    movl	(%ebp), %eax
+    pushl	%eax
+    movl	$10, %eax
+    popl	%ecx
+    cmpl	%eax, %ecx
+    movl	$0, %eax
+    setg	%al
+    cmpl	$0, %eax
+    je          _post_conditional1
+    jmp	_post_loop0
+_post_conditional1:
 _for_exp0:
     jmp           _loop0
 _post_loop0:
-    movq	(%rbp), %rax
-    movq        %rbp, %rsp
-    popq        %rbp
+    movl	(%ebp), %eax
+    movl	%ebp, %esp
+    popl	%ebp
     ret

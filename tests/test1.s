@@ -1,4 +1,8 @@
 .globl _main
 _main:
+    pushl       %ebp
+    movl        %esp, %ebp
     movl	$2, %eax
-ret
+    movl	%ebp, %esp
+    popl	%ebp
+    ret

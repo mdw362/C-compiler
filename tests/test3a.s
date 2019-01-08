@@ -1,8 +1,12 @@
 .globl _main
 _main:
-    movq	$42, %rax
-    push        %rax
-    movq	$2, %rax
-    pop         %rcx
-    addq      %rcx, %rax
-ret
+    pushl       %ebp
+    movl        %esp, %ebp
+    movl	$42, %eax
+    pushl	%eax
+    movl	$2, %eax
+    popl	%ecx
+    addl	%ecx, %eax
+    movl	%ebp, %esp
+    popl	%ebp
+    ret

@@ -1,47 +1,47 @@
 .globl _main
 _main:
-    pushq       %rbp
-    movq        %rsp, %rbp
-    movq        $0, %rax
-    pushq       %rax
-    movq	$0, %rax
-    pushq        %rax
-    movq	$0, %rax
-    movq       %rax, (%rbp)
-    movq	(%rbp), %rax
-    pushq       %rax
-    movq	$10, %rax
-    popq        %rcx
-    cmpq        %rax, %rcx
-    movq        $0, %rax
-    setl        %al
-    cmpq         $0, %rax
-    je            _post_loop0
+    pushl       %ebp
+    movl        %esp, %ebp
+    movl	$0, %eax
+    pushl	%eax
+    movl	$0, %eax
+    pushl	%eax
+    movl	$0, %eax
+    movl	%eax, (%ebp)
+    movl	(%ebp), %eax
+    pushl	%eax
+    movl	$10, %eax
+    popl	%ecx
+    cmpl	%eax, %ecx
+    movl	$0, %eax
+    setl	%al
+    cmpl	$0, %eax
+    je          _post_loop0
 _loop0:
-    movq	-4(%rbp), %rax
-    pushq       %rax
-    movq	$1, %rax
-    popq        %rcx
-    addq        %rcx, %rax
-    movq        %rax, -4(%rbp)
+    movl	-4(%ebp), %eax
+    pushl	%eax
+    movl	$1, %eax
+    popl	%ecx
+    addl	%ecx, %eax
+    movl	%eax,-4(%ebp)
 _for_exp0:
-    movq	(%rbp), %rax
-    pushq       %rax
-    movq	$1, %rax
-    popq        %rcx
-    addq        %rcx, %rax
-    movq       %rax, (%rbp)
-    movq	(%rbp), %rax
-    pushq       %rax
-    movq	$10, %rax
-    popq        %rcx
-    cmpq        %rax, %rcx
-    movq        $0, %rax
-    setl        %al
-    cmpq          $0, %rax
-    jne          _loop0
+    movl	(%ebp), %eax
+    pushl	%eax
+    movl	$1, %eax
+    popl	%ecx
+    addl	%ecx, %eax
+    movl	%eax, (%ebp)
+    movl	(%ebp), %eax
+    pushl	%eax
+    movl	$10, %eax
+    popl	%ecx
+    cmpl	%eax, %ecx
+    movl	$0, %eax
+    setl	%al
+    cmpl	$0, %eax
+    jne	_loop0
 _post_loop0:
-    movq	-4(%rbp), %rax
-    movq        %rbp, %rsp
-    popq        %rbp
+    movl	-4(%ebp), %eax
+    movl	%ebp, %esp
+    popl	%ebp
     ret

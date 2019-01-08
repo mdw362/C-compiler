@@ -1,9 +1,9 @@
  
 int func (int t);
-int main (int x, int y)
+int main ()
 {
-  int z=x+y;
-  return z+func(x);
+  int x=3;
+  return func(x);
 
 }
 int func (int t)

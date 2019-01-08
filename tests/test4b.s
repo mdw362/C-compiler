@@ -1,22 +1,26 @@
 .globl _main
 _main:
-    movq	$4, %rax
-    push        %rax
-    movq	$8, %rax
-    pop         %rcx
-    cmpq        %rax, %rcx
-    movq        $0, %rax
-    setg        %al
-    push        %rax
-    movq	$3, %rax
-    push        %rax
-    movq	$9, %rax
-    pop         %rcx
-    cmpq        %rax, %rcx
-    movq        $0, %rax
-    setl        %al
-    pop         %rcx
-    orq         %rcx, %rax
-    movq        $0, %rax
-    setne       %al
-ret
+    pushl       %ebp
+    movl        %esp, %ebp
+    movl	$4, %eax
+    pushl	%eax
+    movl	$8, %eax
+    popl	%ecx
+    cmpl	%eax, %ecx
+    movl	$0, %eax
+    setg	%al
+    pushl	%eax
+    movl	$3, %eax
+    pushl	%eax
+    movl	$9, %eax
+    popl	%ecx
+    cmpl	%eax, %ecx
+    movl	$0, %eax
+    setl	%al
+    popl	%ecx
+    orl	%ecx, %eax
+    movl	$0, %eax
+    setne	%al
+    movl	%ebp, %esp
+    popl	%ebp
+    ret

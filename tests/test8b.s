@@ -1,33 +1,33 @@
 .globl _main
 _main:
-    pushq       %rbp
-    movq        %rsp, %rbp
-    movq        $0, %rax
-    pushq       %rax
-    movq	$0, %rax
-    pushq        %rax
+    pushl       %ebp
+    movl        %esp, %ebp
+    movl	$0, %eax
+    pushl	%eax
+    movl	$0, %eax
+    pushl	%eax
 _loop0:
-    movq	-4(%rbp), %rax
-    pushq       %rax
-    movq	$1, %rax
-    popq        %rcx
-    addq        %rcx, %rax
-    movq        %rax, -4(%rbp)
-    movq	-4(%rbp), %rax
-    pushq       %rax
-    movq	$7, %rax
-    popq        %rcx
-    cmpq        %rax, %rcx
-    movq        $0, %rax
-    setge       %al
-    cmpq         $0, %rax
-    jne          _post_conditional0
-    jmp           _post_loop0
+    movl	-4(%ebp), %eax
+    pushl	%eax
+    movl	$1, %eax
+    popl	%ecx
+    addl	%ecx, %eax
+    movl	%eax,-4(%ebp)
+    movl	-4(%ebp), %eax
+    pushl	%eax
+    movl	$7, %eax
+    popl	%ecx
+    cmpl	%eax, %ecx
+    movl	$0, %eax
+    setge	%al
+    cmpl	$0, %eax
+    je          _post_conditional0
+    jmp	_post_loop0
 _post_conditional0:
 _for_exp0:
     jmp           _loop0
 _post_loop0:
-    movq	-4(%rbp), %rax
-    movq        %rbp, %rsp
-    popq        %rbp
+    movl	-4(%ebp), %eax
+    movl	%ebp, %esp
+    popl	%ebp
     ret

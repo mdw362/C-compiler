@@ -2,9 +2,15 @@
 _main:
     pushl       %ebp
     movl        %esp, %ebp
-    movl	$4, %eax
+    movl	$3, %eax
     pushl	%eax
     movl	(%ebp), %eax
+    pushl	%eax
+    movl	$3, %eax
+    popl	%ecx
+    cmpl	%eax, %ecx
+    movl	$0, %eax
+    setg	%al
     movl	%ebp, %esp
     popl	%ebp
     ret
