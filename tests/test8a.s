@@ -7,8 +7,8 @@ _main:
     movl	$0, %eax
     pushl	%eax
     movl	$0, %eax
-    movl	%eax, (%ebp)
-    movl	(%ebp), %eax
+    movl	%eax,-4(%ebp)
+    movl	-4(%ebp), %eax
     pushl	%eax
     movl	$10, %eax
     popl	%ecx
@@ -18,20 +18,20 @@ _main:
     cmpl	$0, %eax
     je          _post_loop0
 _loop0:
+    movl	-8(%ebp), %eax
+    pushl	%eax
+    movl	$1, %eax
+    popl	%ecx
+    addl	%ecx, %eax
+    movl	%eax,-8(%ebp)
+_for_exp0:
     movl	-4(%ebp), %eax
     pushl	%eax
     movl	$1, %eax
     popl	%ecx
     addl	%ecx, %eax
     movl	%eax,-4(%ebp)
-_for_exp0:
-    movl	(%ebp), %eax
-    pushl	%eax
-    movl	$1, %eax
-    popl	%ecx
-    addl	%ecx, %eax
-    movl	%eax, (%ebp)
-    movl	(%ebp), %eax
+    movl	-4(%ebp), %eax
     pushl	%eax
     movl	$10, %eax
     popl	%ecx
@@ -41,7 +41,7 @@ _for_exp0:
     cmpl	$0, %eax
     jne	_loop0
 _post_loop0:
-    movl	-4(%ebp), %eax
+    movl	-8(%ebp), %eax
     movl	%ebp, %esp
     popl	%ebp
     ret

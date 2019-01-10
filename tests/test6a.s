@@ -4,7 +4,7 @@ _main:
     movl        %esp, %ebp
     movl	$4, %eax
     pushl	%eax
-    movl	(%ebp), %eax
+    movl	-4(%ebp), %eax
     pushl	%eax
     movl	$5, %eax
     popl	%ecx
@@ -14,13 +14,13 @@ _main:
     cmpl	$0, %eax
     je          _branch0
     movl	$7, %eax
-    movl	%eax, (%ebp)
+    movl	%eax,-4(%ebp)
     jmp	_post_conditional0
 _branch0:
     movl	$3, %eax
-    movl	%eax, (%ebp)
+    movl	%eax,-4(%ebp)
 _post_conditional0:
-    movl	(%ebp), %eax
+    movl	-4(%ebp), %eax
     movl	%ebp, %esp
     popl	%ebp
     ret

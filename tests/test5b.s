@@ -5,10 +5,10 @@ _main:
     movl	$0, %eax
     pushl	%eax
     movl	$5, %eax
-    movl	%eax, (%ebp)
+    movl	%eax,-4(%ebp)
     movl	$3, %eax
-    movl	%eax, (%ebp)
-    movl	(%ebp), %eax
+    movl	%eax,-4(%ebp)
+    movl	-4(%ebp), %eax
     movl	%ebp, %esp
     popl	%ebp
     ret

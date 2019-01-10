@@ -8,7 +8,7 @@ _main:
     pushl	%eax
     movl	%esp, %eax
     subl	$12, %eax
-    xorl        %edx, rdx
+    xorl        %edx, edx
     movl	0x20, %ecx
     idivl	%ecx
     subl	%edx, %esp
@@ -18,7 +18,7 @@ _main:
     popl	%edx
     addl	%edx, %esp
     pushl	%eax
-    movl	-8(%ebp), %eax
+    movl	-12(%ebp), %eax
     movl	%ebp, %esp
     popl	%ebp
     ret
@@ -42,8 +42,8 @@ _fnOne:
     movl	$12, %eax
     popl	%ecx
     imul	%ecx, %eax
-    movl	%eax, (%ebp)
-    movl	(%ebp), %eax
+    movl	%eax,-4(%ebp)
+    movl	-4(%ebp), %eax
     movl	%ebp, %esp
     popl	%ebp
     ret
@@ -58,18 +58,18 @@ _branch0:
     cmpl	$0, %eax
     je          _post_conditional0
     movl	$5, %eax
-    movl	%eax, (%ebp)
+    movl	%eax,-4(%ebp)
 _post_conditional0:
     movl	$2, %eax
     pushl	%eax
 _loop0:
-    movl	-4(%ebp), %eax
+    movl	-8(%ebp), %eax
     pushl	%eax
     movl	$1, %eax
     popl	%ecx
     addl	%ecx, %eax
-    movl	%eax,-4(%ebp)
-    movl	-4(%ebp), %eax
+    movl	%eax,-8(%ebp)
+    movl	-8(%ebp), %eax
     pushl	%eax
     movl	$12, %eax
     popl	%ecx
@@ -79,19 +79,19 @@ _loop0:
     cmpl	$0, %eax
     jne         _loop0
 _post_loop0:
-    movl	-4(%ebp), %eax
+    movl	-8(%ebp), %eax
     pushl	%eax
     movl	$4, %eax
     popl	%ecx
     addl	%ecx, %eax
+    movl	%eax,-8(%ebp)
+    movl	$10, %eax
     movl	%eax,-4(%ebp)
     movl	$10, %eax
-    movl	%eax, (%ebp)
-    movl	$10, %eax
-    movl	%eax, (%ebp)
-    movl	-4(%ebp), %eax
+    movl	%eax,-4(%ebp)
+    movl	-8(%ebp), %eax
     pushl	%eax
-    movl	(%ebp), %eax
+    movl	-4(%ebp), %eax
     popl	%ecx
     cmpl	%eax, %ecx
     movl	$0, %eax
@@ -99,21 +99,21 @@ _post_loop0:
     cmpl	$0, %eax
     je          _post_loop1
 _loop1:
-    movl	-4(%ebp), %eax
+    movl	-8(%ebp), %eax
     pushl	%eax
     movl	$3, %eax
     popl	%ecx
     addl	%ecx, %eax
-    movl	%eax,-4(%ebp)
-    movl	-4(%ebp), %eax
+    movl	%eax,-8(%ebp)
+    movl	-8(%ebp), %eax
     pushl	%eax
     movl	$3, %eax
     popl	%ecx
     addl	%ecx, %eax
-    movl	%eax,-4(%ebp)
-    movl	-4(%ebp), %eax
+    movl	%eax,-8(%ebp)
+    movl	-8(%ebp), %eax
     pushl	%eax
-    movl	(%ebp), %eax
+    movl	-4(%ebp), %eax
     popl	%ecx
     cmpl	%eax, %ecx
     movl	$0, %eax
@@ -123,7 +123,7 @@ _loop1:
 _post_loop1:
     movl	8(%ebp), %eax
     pushl	%eax
-    movl	-4(%ebp), %eax
+    movl	-8(%ebp), %eax
     popl	%ecx
     addl	%ecx, %eax
     movl	%ebp, %esp

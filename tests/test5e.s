@@ -4,7 +4,7 @@ _main:
     movl        %esp, %ebp
     movl	$3, %eax
     pushl	%eax
-    movl	(%ebp), %eax
+    movl	-4(%ebp), %eax
     pushl	%eax
     movl	$3, %eax
     popl	%ecx

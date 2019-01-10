@@ -6,7 +6,7 @@ _main:
     pushl	%eax
     movl	$9, %eax
     pushl	%eax
-    movl	(%ebp), %eax
+    movl	-4(%ebp), %eax
     pushl	%eax
     movl	$5, %eax
     popl	%ecx
@@ -16,12 +16,12 @@ _main:
     cmpl	$0, %eax
     je          _branch0
     movl	$7, %eax
-    movl	%eax, (%ebp)
-    movl	$0, %eax
     movl	%eax,-4(%ebp)
+    movl	$0, %eax
+    movl	%eax,-8(%ebp)
     jmp	_post_conditional0
 _branch0:
-    movl	(%ebp), %eax
+    movl	-4(%ebp), %eax
     pushl	%eax
     movl	$9, %eax
     popl	%ecx
@@ -31,29 +31,29 @@ _branch0:
     cmpl	$0, %eax
     je          _branch1
     movl	$23, %eax
-    movl	%eax, (%ebp)
-    movl	$2, %eax
     movl	%eax,-4(%ebp)
+    movl	$2, %eax
+    movl	%eax,-8(%ebp)
     jmp	_post_conditional0
 _branch1:
     movl	$3, %eax
-    movl	%eax, (%ebp)
+    movl	%eax,-4(%ebp)
 _post_conditional0:
-    movl	(%ebp), %eax
-    pushl	%eax
     movl	-4(%ebp), %eax
+    pushl	%eax
+    movl	-8(%ebp), %eax
     popl	%ecx
     addl	%ecx, %eax
-    movl	%eax, (%ebp)
-    movl	-4(%ebp), %eax
+    movl	%eax,-4(%ebp)
+    movl	-8(%ebp), %eax
     pushl	%eax
-    movl	(%ebp), %eax
+    movl	-4(%ebp), %eax
     popl	%ecx
     imul	%ecx, %eax
-    movl	%eax,-4(%ebp)
-    movl	(%ebp), %eax
-    pushl	%eax
+    movl	%eax,-8(%ebp)
     movl	-4(%ebp), %eax
+    pushl	%eax
+    movl	-8(%ebp), %eax
     popl	%ecx
     addl	%ecx, %eax
     movl	%ebp, %esp

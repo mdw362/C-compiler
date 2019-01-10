@@ -6,12 +6,12 @@ _main:
     pushl	%eax
     movl	%esp, %eax
     subl	$8, %eax
-    xorl        %edx, rdx
+    xorl        %edx, edx
     movl	0x20, %ecx
     idivl	%ecx
     subl	%edx, %esp
     pushl	%edx
-    movl	(%ebp), %eax
+    movl	-4(%ebp), %eax
     pushl       %eax
     call	_fnOne
     addl	$0x4, %esp
@@ -20,7 +20,7 @@ _main:
     pushl	%eax
     movl	%esp, %eax
     subl	$12, %eax
-    xorl        %edx, rdx
+    xorl        %edx, edx
     movl	0x20, %ecx
     idivl	%ecx
     subl	%edx, %esp
@@ -30,7 +30,7 @@ _main:
     popl	%edx
     addl	%edx, %esp
     pushl	%eax
-    movl	-8(%ebp), %eax
+    movl	-12(%ebp), %eax
     movl	%ebp, %esp
     popl	%ebp
     ret
@@ -54,8 +54,8 @@ _fnOne:
     movl	$12, %eax
     popl	%ecx
     imul	%ecx, %eax
-    movl	%eax, (%ebp)
-    movl	(%ebp), %eax
+    movl	%eax,-4(%ebp)
+    movl	-4(%ebp), %eax
     movl	%ebp, %esp
     popl	%ebp
     ret
@@ -70,8 +70,8 @@ _branch0:
     cmpl	$0, %eax
     je          _branch1
     movl	$5, %eax
-    movl	%eax, (%ebp)
-    movl	(%ebp), %eax
+    movl	%eax,-4(%ebp)
+    movl	-4(%ebp), %eax
     pushl	%eax
     movl	$1, %eax
     popl	%ecx
@@ -89,8 +89,8 @@ _branch1:
     cmpl	$0, %eax
     je          _branch2
     movl	$2, %eax
-    movl	%eax, (%ebp)
-    movl	(%ebp), %eax
+    movl	%eax,-4(%ebp)
+    movl	-4(%ebp), %eax
     pushl	%eax
     movl	$9, %eax
     popl	%ecx
@@ -105,7 +105,7 @@ _post_conditional0:
     pushl	%eax
     movl	8(%ebp), %eax
     pushl	%eax
-    movl	-4(%ebp), %eax
+    movl	-8(%ebp), %eax
     popl	%ecx
     addl	%ecx, %eax
     movl	%ebp, %esp
@@ -120,19 +120,19 @@ _fnTwo:
     movl	$0, %eax
     pushl	%eax
 _loop0:
-    movl	(%ebp), %eax
+    movl	-4(%ebp), %eax
     pushl	%eax
     movl	8(%ebp), %eax
     popl	%ecx
     addl	%ecx, %eax
-    movl	%eax, (%ebp)
-    movl	(%ebp), %eax
+    movl	%eax,-4(%ebp)
+    movl	-4(%ebp), %eax
     pushl	%eax
     movl	12(%ebp), %eax
     popl	%ecx
     addl	%ecx, %eax
-    movl	%eax, (%ebp)
-    movl	(%ebp), %eax
+    movl	%eax,-4(%ebp)
+    movl	-4(%ebp), %eax
     pushl	%eax
     movl	$10, %eax
     popl	%ecx
@@ -146,7 +146,7 @@ _post_conditional1:
 _for_exp0:
     jmp           _loop0
 _post_loop0:
-    movl	(%ebp), %eax
+    movl	-4(%ebp), %eax
     movl	%ebp, %esp
     popl	%ebp
     ret

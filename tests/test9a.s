@@ -6,12 +6,12 @@ _main:
     pushl	%eax
     movl	%esp, %eax
     subl	$8, %eax
-    xorl        %edx, rdx
+    xorl        %edx, edx
     movl	0x20, %ecx
     idivl	%ecx
     subl	%edx, %esp
     pushl	%edx
-    movl	(%ebp), %eax
+    movl	-4(%ebp), %eax
     pushl       %eax
     call	_func
     addl	$0x4, %esp

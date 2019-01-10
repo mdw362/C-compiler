@@ -4,16 +4,16 @@ _main:
     movl        %esp, %ebp
     movl	$5, %eax
     pushl	%eax
-    movl	(%ebp), %eax
+    movl	-4(%ebp), %eax
     pushl	%eax
     movl	%esp, %eax
     subl	$8, %eax
-    xorl        %edx, rdx
+    xorl        %edx, edx
     movl	0x20, %ecx
     idivl	%ecx
     subl	%edx, %esp
     pushl	%edx
-    movl	(%ebp), %eax
+    movl	-4(%ebp), %eax
     pushl       %eax
     call	_fn
     addl	$0x4, %esp
@@ -22,7 +22,7 @@ _main:
     popl	%ecx
     addl	%ecx, %eax
     pushl	%eax
-    movl	-4(%ebp), %eax
+    movl	-8(%ebp), %eax
     movl	%ebp, %esp
     popl	%ebp
     ret

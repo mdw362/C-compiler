@@ -514,7 +514,7 @@ object Compiler {
       var lines=""
       val env : HashMap [String, Int]=HashMap()
       val params : HashMap [String, Int] = HashMap()
-      var stackIndex=0
+      var stackIndex=(-4)
       var paramOffset=8
       var branchCount=0
       var condCount=0
@@ -536,7 +536,7 @@ object Compiler {
           codeGenerator.write(lines)
           env.clear
           lines=""
-          stackIndex=0
+          stackIndex=(-4)
           val doesRet : (ASTNode) => Boolean= (node) => node.getDtype=="RETURN"
 
           for (c <- node.getChildren){
@@ -752,7 +752,7 @@ object Compiler {
           asm=asm+"    movl\t%esp, %eax\n"
           asm=asm+"    subl\t$"+4*(node.getChildren.length+1)+", %eax\n"
           // Xor results in 32 bit error?
-          asm=asm+"    xorl        %edx, rdx\n    movl\t0x20, %ecx\n"
+          asm=asm+"    xorl        %edx, edx\n    movl\t0x20, %ecx\n"
 //         asm=asm+"    movl\t $0,  %edx\n    movl\t0x20, %ecx\n"
           asm=asm+"    idivl\t%ecx\n    subl\t%edx, %esp\n    pushl\t%edx\n"   
           for (i <- node.getChildren.length-1 to 0){
