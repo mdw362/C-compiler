@@ -539,15 +539,18 @@ object Compiler {
           stackIndex=(-4)
           val doesRet : (ASTNode) => Boolean= (node) => node.getDtype=="RETURN"
 
-          for (c <- node.getChildren){
-            if (c.getDtype=="PARAMETERS"){
-              for (gc <- c.getChildren){
-                params += (gc.getValue -> paramOffset)
-                paramOffset+=4
+          node.getChildren.foreach{
+            (c) => {
+              if (c.getDtype=="PARAMETERS"){
+                c.getChildren.foreach{
+                (gc) =>{
+                  params+=(gc.getValue -> paramOffset)
+                  paramOffset+=4
+                  }
+                }
               }
+              else search(c)
             }
-            else search(c)
-            
           }
           if (!(node.getChildren.exists(doesRet))){
             lines=lines+"    movl\t$0, %eax\n"
