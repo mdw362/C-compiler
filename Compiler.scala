@@ -11,10 +11,10 @@ object Compiler {
     val ast : AST = new AST (new ASTNode (null, "PROGRAM") )
     // Iterate through every char in file and construct tokens
     Source.fromFile(cFile).foreach{ analyzeChar }
- //   printTokens
+    printTokens
     parseStatement
- //   ast.printAST
-    generateCode
+    ast.printAST
+ //   generateCode
 
     def analyzeChar  = {
       var str=""
